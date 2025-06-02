@@ -1,0 +1,13 @@
+# Ignore Terraform files
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+crashtest.log
+
+# Ignore variable definition files which may contain sensitive data
+# Consider if you need to exclude specific .tfvars files or include a .tfvars.example
+*.tfvars
+
+# Ignore provider plugins directory
+.terraform.d/ 
