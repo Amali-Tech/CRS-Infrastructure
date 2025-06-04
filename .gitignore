@@ -4,10 +4,24 @@
 *.tfstate.backup
 .terraform.lock.hcl
 crashtest.log
+*.tfplan
+*.tfplan.binary
+crash.log
 
 # Ignore variable definition files which may contain sensitive data
 # Consider if you need to exclude specific .tfvars files or include a .tfvars.example
 *.tfvars
 
 # Ignore provider plugins directory
-.terraform.d/ 
+.terraform.d/
+
+# Ignore local environment files
+.env
+.env.*
+!.env.example
+
+# Ignore IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo 
