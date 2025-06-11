@@ -143,4 +143,68 @@ resource "aws_iam_role_policy" "sonarqube_route53" {
 resource "aws_iam_instance_profile" "sonarqube_route53" {
   name = "${var.project_name}-${var.environment}-sonarqube-route53-profile"
   role = aws_iam_role.sonarqube_route53.name
+}
+
+# Data sources for region and account ID
+data "aws_region" "current" {}
+data "aws_caller_identity" "current" {}
+
+# IAM role for Lambda Route53 updates
+resource "aws_iam_role" "lambda_route53" {
+  name = "${var.project_name}-${var.environment}-lambda-route53-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-lambda-route53-role"
+    Environment = var.environment
+    Project     = var.project_name
+  }
+}
+
+# IAM policy for Lambda Route53 updates
+resource "aws_iam_role_policy" "lambda_route53" {
+  name = "${var.project_name}-${var.environment}-lambda-route53-policy"
+  role = aws_iam_role.lambda_route53.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "route53:ChangeResourceRecordSets",
+          "route53:ListResourceRecordSets"
+        ]
+        Resource = "arn:aws:route53:::hostedzone/${var.route53_zone_id}"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ec2:DescribeInstances"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = "arn:aws:logs:*:*:*"
+      }
+    ]
+  })
 } 

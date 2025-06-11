@@ -17,6 +17,7 @@ module "iam" {
   environment  = var.environment
   aws_account_id = var.aws_account_id
   route53_zone_id = var.route53_zone_id
+  sonarqube_instance_id = module.sonarqube.instance_id
 }
 
 # SonarQube
@@ -34,4 +35,5 @@ module "sonarqube" {
   route53_zone_id    = var.route53_zone_id
   domain_name        = var.domain_name
   iam_instance_profile = module.iam.sonarqube_instance_profile_name
+  lambda_route53_role_arn = module.iam.lambda_route53_role_arn
 } 

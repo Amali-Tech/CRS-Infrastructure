@@ -4,17 +4,17 @@ variable "project_name" {
 }
 
 variable "environment" {
-  description = "Environment (e.g., dev, staging, prod)"
+  description = "Environment (e.g., dev, prod)"
   type        = string
 }
 
 variable "aws_account_id" {
-  description = "AWS Account ID"
+  description = "AWS account ID"
   type        = string
 }
 
 variable "route53_zone_id" {
-  description = "Route 53 hosted zone ID"
+  description = "Route53 hosted zone ID"
   type        = string
 }
 
@@ -28,4 +28,9 @@ variable "cloudfront_distribution_id" {
   description = "ID of the CloudFront distribution"
   type        = string
   default     = ""
+} 
+
+variable "sonarqube_instance_id" {
+  description = "ID of the SonarQube EC2 instance"
+  type        = string
 } 

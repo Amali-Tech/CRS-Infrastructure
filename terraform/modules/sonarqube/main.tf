@@ -124,6 +124,13 @@ resource "aws_instance" "sonarqube" {
     aws_ssm_parameter.sonarqube_db_password,
     aws_ssm_parameter.sonarqube_db_user
   ]
+
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes = [
+      associate_public_ip_address
+    ]
+  }
 }
 
 # Attach EBS Volumes to EC2 Instance
@@ -136,6 +143,10 @@ resource "aws_volume_attachment" "sonarqube_data" {
     aws_instance.sonarqube,
     aws_ebs_volume.sonarqube_data
   ]
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_volume_attachment" "postgresql_data" {
@@ -147,6 +158,10 @@ resource "aws_volume_attachment" "postgresql_data" {
     aws_instance.sonarqube,
     aws_ebs_volume.postgresql_data
   ]
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 # Create Route 53 record for SonarQube
@@ -162,10 +177,62 @@ resource "aws_route53_record" "sonarqube" {
   ]
 
   lifecycle {
-    precondition {
-      condition     = aws_instance.sonarqube.public_ip != null
-      error_message = "EC2 instance must have a public IP before creating Route53 record"
+    ignore_changes = [
+      records
+    ]
+  }
+}
+
+# Data sources for region and account ID
+data "aws_region" "current" {}
+data "aws_caller_identity" "current" {}
+
+# Lambda function to update Route53 record
+resource "aws_lambda_function" "update_route53" {
+  filename         = "${path.module}/lambda/update_route53.zip"
+  function_name    = "${var.project_name}-${var.environment}-update-route53"
+  role            = var.lambda_route53_role_arn
+  handler         = "index.handler"
+  runtime         = "nodejs18.x"
+  timeout         = 30
+
+  environment {
+    variables = {
+      INSTANCE_ID    = aws_instance.sonarqube.id
+      HOSTED_ZONE_ID = var.route53_zone_id
+      DOMAIN_NAME    = var.domain_name
     }
   }
+}
+
+# EventBridge rule to trigger Lambda after instance start
+resource "aws_cloudwatch_event_rule" "instance_running" {
+  name        = "${var.project_name}-${var.environment}-instance-running"
+  description = "Trigger when SonarQube instance is running"
+
+  event_pattern = jsonencode({
+    source      = ["aws.ec2"]
+    detail-type = ["EC2 Instance State-change Notification"]
+    detail = {
+      "instance-id" = [aws_instance.sonarqube.id]
+      state         = ["running"]
+    }
+  })
+}
+
+# EventBridge target for Lambda
+resource "aws_cloudwatch_event_target" "lambda_target" {
+  rule      = aws_cloudwatch_event_rule.instance_running.name
+  target_id = "UpdateRoute53"
+  arn       = aws_lambda_function.update_route53.arn
+}
+
+# Allow EventBridge to invoke Lambda
+resource "aws_lambda_permission" "allow_eventbridge" {
+  statement_id  = "AllowEventBridgeInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.update_route53.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.instance_running.arn
 }
 

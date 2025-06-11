@@ -13,7 +13,7 @@ crash.log
 *.tfvars
 
 # Ignore provider plugins directory
-.terraform.d/
+.terraform.d/ 
 
 # Ignore local environment files
 .env

@@ -23,3 +23,8 @@ output "sonarqube_db_password_parameter_arn" {
 #   description = "Ngrok URL for accessing SonarQube"
 #   value       = aws_ssm_parameter.sonarqube_ngrok_url.value
 # } 
+
+output "instance_id" {
+  description = "The ID of the SonarQube EC2 instance"
+  value       = aws_instance.sonarqube.id
+} 

@@ -4,7 +4,7 @@ variable "project_name" {
 }
 
 variable "environment" {
-  description = "Environment (e.g., dev, staging, prod)"
+  description = "Environment (e.g., dev, prod)"
   type        = string
 }
 
@@ -14,7 +14,7 @@ variable "vpc_id" {
 }
 
 variable "vpc_cidr" {
-  description = "CIDR block of the VPC"
+  description = "CIDR block for the VPC"
   type        = string
 }
 
@@ -28,54 +28,46 @@ variable "public_subnet_ids" {
   type        = list(string)
 }
 
-variable "ami_id" {
-  description = "AMI ID for the SonarQube EC2 instance"
-  type        = string
-  default     = "ami-0c7217cdde317cfec"  # Ubuntu 22.04 LTS
-}
-
-variable "instance_type" {
-  description = "Instance type for the SonarQube EC2 instance"
-  type        = string
-  default     = "t3.medium"
-}
-
-variable "db_username" {
-  description = "Database username"
-  type        = string
-  default     = "sonarqube"
-}
-
 variable "db_password" {
   description = "Password for the SonarQube database"
   type        = string
   sensitive   = true
 }
 
-variable "db_name" {
-  description = "Database name"
+variable "db_username" {
+  description = "Username for the SonarQube database"
   type        = string
   default     = "sonarqube"
 }
 
-variable "ngrok_auth_token" {
-  description = "Auth token for ngrok"
+variable "ami_id" {
+  description = "AMI ID for the SonarQube instance"
   type        = string
-  sensitive   = true
-  default     = ""
+  default     = "ami-0c7217cdde317cfec"  # Ubuntu 22.04 LTS
+}
+
+variable "instance_type" {
+  description = "Instance type for the SonarQube instance"
+  type        = string
+  default     = "t3.medium"
 }
 
 variable "route53_zone_id" {
-  description = "Route 53 hosted zone ID"
+  description = "Route53 hosted zone ID"
   type        = string
 }
 
 variable "domain_name" {
-  description = "Base domain name"
+  description = "Domain name for the SonarQube instance"
   type        = string
 }
 
 variable "iam_instance_profile" {
-  description = "IAM instance profile name for the SonarQube EC2 instance"
+  description = "IAM instance profile name for the SonarQube instance"
+  type        = string
+}
+
+variable "lambda_route53_role_arn" {
+  description = "ARN of the IAM role for the Route53 update Lambda function"
   type        = string
 } 
